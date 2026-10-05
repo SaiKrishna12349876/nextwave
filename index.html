@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{ workshop }} — Free NxtWave Workshop</title>
+<style>
+:root{--bg:#0b1020;--card:#141b31;--line:#243054;--txt:#eef2ff;--mut:#9aa6c9;--acc:#ff7a1a;--acc2:#4ade80}
+*{box-sizing:border-box;margin:0}body{font:16px/1.5 system-ui,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--txt)}
+.wrap{max-width:960px;margin:0 auto;padding:24px 16px}
+.hero{display:grid;grid-template-columns:1.2fr 1fr;gap:28px;align-items:start}@media(max-width:760px){.hero{grid-template-columns:1fr}}
+.tag{display:inline-block;background:#1f2a4d;color:#c7d2fe;border-radius:999px;padding:4px 12px;font-size:13px;font-weight:600;margin-bottom:12px}
+h1{font-size:clamp(28px,4.5vw,44px);line-height:1.1;margin-bottom:12px}h1 span{color:var(--acc)}
+.sub{color:var(--mut);margin-bottom:18px}
+ul.perks{list-style:none;margin:0 0 20px}ul.perks li{padding:6px 0 6px 28px;position:relative}ul.perks li:before{content:"✓";position:absolute;left:0;color:var(--acc2);font-weight:700}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px}
+.seats{display:flex;justify-content:space-between;font-size:14px;color:var(--mut);margin-bottom:6px}
+.bar{height:10px;background:#1f2a4d;border-radius:999px;overflow:hidden;margin-bottom:18px}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--acc),#ffb366);width:0;transition:width .8s}
+label{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
+input,select{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:#0e1529;color:var(--txt);font-size:15px}
+button{width:100%;margin-top:16px;padding:14px;border:0;border-radius:12px;background:var(--acc);color:#fff;font-weight:700;font-size:16px;cursor:pointer}button:disabled{opacity:.6}
+.err{color:#fca5a5;font-size:14px;margin-top:8px;min-height:18px}
+.inv{background:#15381f;border:1px solid #2f7a44;color:#bbf7d0;padding:10px 12px;border-radius:10px;font-size:14px;margin-bottom:12px;display:none}
+.code{font-family:ui-monospace,monospace;font-size:28px;letter-spacing:3px;background:#0e1529;border:1px dashed var(--acc);padding:12px;border-radius:10px;text-align:center;margin:12px 0}
+.wa{background:#25d366}.li{background:#0a66c2}.em{background:#dc2626}.ghost{background:#1f2a4d;color:var(--txt)}
+.share{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}.share button{margin-top:0;padding:11px;font-size:14px}.share a{display:block}
+.kv{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-size:15px;margin-top:4px}.kv b{font-size:20px;color:var(--acc2)}
+.lb{margin-top:28px}.lb table{width:100%;border-collapse:collapse;font-size:15px}.lb td,.lb th{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left}.lb th{color:var(--mut);font-weight:600;font-size:13px}
+.lb td:last-child,.lb th:last-child{text-align:right}.rank{color:var(--acc);font-weight:700}
+.foot{color:var(--mut);font-size:13px;text-align:center;margin-top:30px}
+</style></head><body><div class="wrap">
+<div class="hero">
+ <div>
+  <span class="tag">FREE · LIVE · FINAL-YEAR STUDENTS ONLY</span>
+  <h1>{{ workshop.replace('60 Minutes','<span>60 Minutes</span>')|safe }}</h1>
+  <p class="sub">📅 {{ when }} · Online · Laptop + GitHub login is all you need</p>
+  <ul class="perks">
+   <li>Walk out with a <b>working AI project on GitHub</b> — resume-ready the same night</li>
+   <li>Certificate of participation + the exact 2-line resume bullet to use</li>
+   <li>Answer "Have you built anything with AI?" with a yes in your next interview</li>
+   <li>Refer friends → every referral counts → Amazon vouchers for the top 10 referrers</li>
+  </ul>
+ </div>
+ <div class="card">
+  <div class="seats"><span id="seatTxt">Loading seats…</span><span id="pct"></span></div><div class="bar"><i id="bar"></i></div>
+  <div class="inv" id="inv"></div>
+  <div id="form">
+   <h3>Reserve your seat (30 seconds)</h3>
+   <label>Full name</label><input id="name" placeholder="Priya Sharma" autocomplete="name">
+   <label>College</label><input id="college" placeholder="e.g. Amrita Vishwa Vidyapeetham, Amaravati">
+   <label>Branch</label><select id="branch"><option>CSE</option><option>IT</option><option>AI/ML / DS</option><option>ECE</option><option>EEE</option><option>Mech / Civil</option><option>Other</option></select>
+   <label>WhatsApp number (join link is sent here)</label><input id="whatsapp" placeholder="98xxxxxxxx" inputmode="numeric" maxlength="13">
+   <label>Email (optional)</label><input id="email" placeholder="you@college.edu" type="email">
+   <button id="btn" onclick="register()">Reserve my free seat →</button>
+   <div class="err" id="err"></div>
+  </div>
+  <div id="done" style="display:none">
+   <h3>🎉 You're in, <span id="dn"></span>!</h3>
+   <p class="sub" style="margin:6px 0 0">The join link comes on WhatsApp 30 min before the session.</p>
+   <p style="margin-top:14px;font-size:14px">Your personal referral code</p><div class="code" id="dc"></div>
+   <p style="font-size:14px;color:var(--mut)">Every friend who registers with your link = +1 referral. Top 10 referrers win Amazon vouchers.</p>
+   <p style="margin-top:10px;font-size:18px">Your referrals so far: <b id="myCount" style="color:var(--acc2);font-size:26px">0</b></p>
+   <p style="margin-top:14px;font-size:13px;color:var(--mut)">Share on multiple channels</p>
+   <div class="share">
+    <a id="waBtn" target="_blank"><button class="wa">WhatsApp</button></a>
+    <a id="liBtn" target="_blank"><button class="li">LinkedIn</button></a>
+    <a id="emBtn"><button class="em">Email</button></a>
+    <button class="ghost" onclick="copyLink()" id="copyBtn">Copy link</button>
+   </div>
+   <div class="kv"><span>Your referrals</span><b id="myCount2">0</b></div>
+   <div class="kv"><span>Seats remaining</span><b id="left2">–</b></div>
+   <button class="ghost" style="margin-top:14px" onclick="location.href='/'">← Back to home</button>
+  </div>
+ </div>
+</div>
+<div class="lb card" id="lbCard">
+ <h3 style="margin-bottom:10px">🏆 Top referrers</h3>
+ <table><thead><tr><th>#</th><th>Student</th><th>College</th><th>Referrals</th></tr></thead><tbody id="lbBody"><tr><td colspan="4" style="color:var(--mut)">No referrals yet — be the first.</td></tr></tbody></table>
+</div>
+<p class="foot">Built for the NxtWave Growth Challenge · Tracks channel + referral attribution end-to-end</p>
+</div>
+<script>
+const q=new URLSearchParams(location.search),ref=(q.get('ref')||'').toUpperCase(),src=q.get('src')||'';
+let shareUrl='',myCode='';
+async function stats(){try{const s=await(await fetch('/api/stats')).json();const p=Math.min(100,Math.round(100*s.total_registrations/s.target));
+ document.getElementById('seatTxt').textContent=`${s.total_registrations} registered · ${s.remaining_capacity} seats left`;document.getElementById('pct').textContent=p+'%';document.getElementById('bar').style.width=p+'%';document.getElementById('left2').textContent=s.remaining_capacity;}catch(e){}}
+async function inv(){if(!ref)return;try{const r=await fetch('/api/referrer/'+ref);if(!r.ok)return;const d=await r.json();const b=document.getElementById('inv');b.style.display='block';b.textContent=`🎟️ ${d.name} (${d.college}) invited you — register and they get the credit!`;}catch(e){}}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+async function register(){const b=document.getElementById('btn'),e=document.getElementById('err');e.textContent='';b.disabled=true;b.textContent='Reserving…';
+ const body={name:v('name'),college:v('college'),branch:v('branch'),whatsapp:v('whatsapp'),email:v('email'),ref,src};
+ try{const r=await fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const d=await r.json();
+  if(!r.ok){e.textContent=d.error||'Something went wrong';return;}
+  shareUrl=d.share_url;myCode=d.code;document.getElementById('form').style.display='none';document.getElementById('done').style.display='block';
+  document.getElementById('dn').textContent=d.name.split(' ')[0];document.getElementById('dc').textContent=d.code;document.getElementById('waBtn').href=d.whatsapp_share;
+  document.getElementById('liBtn').href='https://www.linkedin.com/sharing/share-offsite/?url='+encodeURIComponent(d.share_url);
+  document.getElementById('emBtn').href='mailto:?subject='+encodeURIComponent('Free AI project workshop — register with my link')+'&body='+encodeURIComponent(d.share_text);
+  stats();}catch(x){e.textContent='Network error — try again';}finally{b.disabled=false;b.textContent='Reserve my free seat →';}}
+function v(id){return document.getElementById(id).value.trim()}
+function copyLink(){navigator.clipboard.writeText(shareUrl).then(()=>{document.getElementById('copyBtn').textContent='Copied ✓'})}
+async function lb(){try{const d=await(await fetch('/api/leaderboard?limit=10')).json();if(!d.leaderboard.length)return;
+ document.getElementById('lbBody').innerHTML=d.leaderboard.map(r=>`<tr><td class="rank">${r.rank}</td><td>${esc(r.name)}${myCode&&r.code===myCode?' <b style="color:var(--acc2)">(you)</b>':''}</td><td>${esc(r.college)}</td><td>${r.referrals}</td></tr>`).join('');}catch(e){}}
+async function mine(){if(!myCode)return;try{const d=await(await fetch('/api/referrer/'+myCode)).json();document.getElementById('myCount').textContent=d.referral_count;document.getElementById('myCount2').textContent=d.referral_count;}catch(e){}}
+stats();inv();lb();setInterval(()=>{stats();mine();lb()},5000);
+</script></body></html>

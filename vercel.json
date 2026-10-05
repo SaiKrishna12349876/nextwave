@@ -1,0 +1,5 @@
+{
+  "redirects": [
+    { "source": "/(.*)", "destination": "https://web-production-b6313.up.railway.app/$1", "permanent": false }
+  ]
+}

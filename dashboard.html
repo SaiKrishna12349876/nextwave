@@ -1,0 +1,48 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Campaign dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#0b1020;--card:#141b31;--line:#243054;--txt:#eef2ff;--mut:#9aa6c9;--acc:#ff7a1a}
+*{box-sizing:border-box;margin:0}body{font:15px/1.5 system-ui,sans-serif;background:var(--bg);color:var(--txt);padding:20px}
+h1{font-size:22px;margin-bottom:4px}.sub{color:var(--mut);margin-bottom:18px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px}
+.k{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}.k b{display:block;font-size:28px}.k span{color:var(--mut);font-size:13px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:800px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}.card h3{font-size:14px;color:var(--mut);margin-bottom:8px}
+table{width:100%;border-collapse:collapse;font-size:14px}td{padding:6px 4px;border-bottom:1px solid var(--line)}td:last-child{text-align:right}
+a.btn{display:inline-block;background:var(--acc);color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;margin-right:8px}
+pre{white-space:pre-wrap;background:#0e1529;padding:10px;border-radius:8px;font-size:13px;margin-top:8px}
+select{background:#0e1529;color:var(--txt);border:1px solid var(--line);padding:6px;border-radius:8px}
+</style></head><body>
+<h1>🎯 Campaign dashboard — target {{ target }}</h1><p class="sub" id="upd">Loading…</p>
+<div class="kpis">
+ <div class="k"><b id="total">–</b><span>Registrations</span></div>
+ <div class="k"><b id="pct">–</b><span>Of target</span></div>
+ <div class="k"><b id="ref">–</b><span>Came via referral</span></div>
+ <div class="k"><b id="kf">–</b><span>K-factor (referred / total)</span></div>
+ <div class="k"><b id="act">–</b><span>Active referrers</span></div>
+</div>
+<div class="grid">
+ <div class="card"><h3>Registrations per day</h3><canvas id="cDay" height="180"></canvas></div>
+ <div class="card"><h3>By channel</h3><canvas id="cSrc" height="180"></canvas></div>
+ <div class="card"><h3>Top colleges</h3><table id="col"></table></div>
+ <div class="card"><h3>Who referred how many (top 25)</h3><table id="refs"></table></div>
+ <div class="card"><h3>WhatsApp broadcast copy (auto-fills live numbers)</h3>
+  Day <select id="day" onchange="msg()">{% for i in range(1,8) %}<option>{{ i }}</option>{% endfor %}</select>
+  <pre id="msg"></pre></div>
+</div>
+<p style="margin-top:16px"><a class="btn" href="/api/admin/export.csv?key={{ key }}">⬇ Export CSV</a><a class="btn" style="background:#1f2a4d" href="/">View landing page</a></p>
+<script>
+const KEY='{{ key }}';let cd,cs;
+async function load(){const d=await(await fetch('/api/admin/funnel?key='+KEY)).json();
+ total.textContent=d.total;pct.textContent=d.progress_pct+'%';ref.textContent=d.referred;kf.textContent=d.k_factor;act.textContent=d.active_referrers;
+ upd.textContent='Updated '+new Date().toLocaleTimeString();
+ const lb=await(await fetch('/api/leaderboard?limit=25')).json();
+ refs.innerHTML='<tr><td style="color:var(--mut)">#</td><td style="color:var(--mut)">Student · code</td><td style="color:var(--mut)">College</td><td style="color:var(--mut)">Referrals</td></tr>'+(lb.leaderboard.map(r=>`<tr><td>${r.rank}</td><td>${r.name} <span style="color:var(--mut);font-family:monospace">${r.code}</span></td><td>${r.college}</td><td>${r.referrals}</td></tr>`).join('')||'<tr><td style="color:var(--mut)">No referrals yet</td></tr>');
+ col.innerHTML=d.by_college.map(r=>`<tr><td>${r.college}</td><td>${r.count}</td></tr>`).join('')||'<tr><td style="color:var(--mut)">No data yet</td></tr>';
+ const o={responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#9aa6c9'}},y:{ticks:{color:'#9aa6c9'},beginAtZero:true}}};
+ cd&&cd.destroy();cd=new Chart(cDay,{type:'bar',data:{labels:d.by_day.map(r=>r.day.slice(5)),datasets:[{data:d.by_day.map(r=>r.count),backgroundColor:'#ff7a1a'}]},options:o});
+ cs&&cs.destroy();cs=new Chart(cSrc,{type:'bar',data:{labels:Object.keys(d.by_channel),datasets:[{data:Object.values(d.by_channel),backgroundColor:'#4ade80'}]},options:{...o,indexAxis:'y'}});}
+async function msg(){const d=await(await fetch('/api/messages/'+day.value)).json();document.getElementById('msg').textContent='['+d.purpose+']\n\n'+d.text;}
+load();msg();setInterval(load,20000);
+</script></body></html>
